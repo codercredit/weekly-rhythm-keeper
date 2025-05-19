@@ -7,6 +7,7 @@ import { Check } from "lucide-react";
 import { useRoutine } from "@/contexts/RoutineContext";
 import { DAYS_OF_WEEK, TIME_BLOCKS, TimeBlock, WeekDay } from "@/types/routine";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function RoutineTable() {
   const { routineData, setSelectedItem, addRoutineItem, toggleCompleted } = useRoutine();
@@ -38,6 +39,20 @@ export function RoutineTable() {
     return day.charAt(0).toUpperCase() + day.slice(1);
   };
 
+  if (routineData.isLoading) {
+    return (
+      <div className="routine-grid min-w-[900px] gap-2 p-2">
+        {Array(5).fill(0).map((_, i) => (
+          <div key={`skeleton-row-${i}`} className="flex w-full space-x-2 my-4">
+            {Array(8).fill(0).map((_, j) => (
+              <Skeleton key={`skeleton-item-${i}-${j}`} className="h-20 w-full" />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <div className="routine-grid min-w-[900px] gap-2 p-2">
@@ -67,19 +82,29 @@ export function RoutineTable() {
                         <div
                           key={item.id}
                           className={cn(
-                            "routine-item cursor-pointer", 
-                            item.completed && "completed"
+                            "routine-item cursor-pointer p-2 rounded-md border",
+                            item.completed ? "bg-green-50 border-green-200" : "bg-white border-slate-200",
+                            item.color && `border-l-4 border-l-[${item.color}]`
                           )}
                           onClick={() => setSelectedItem(item)}
+                          style={item.color ? { borderLeftColor: item.color } : {}}
                         >
                           <div className="flex justify-between items-start">
-                            <h3 className="font-medium">{item.title}</h3>
+                            <div>
+                              {item.emoji && <span className="mr-2">{item.emoji}</span>}
+                              <h3 className="font-medium inline">{item.title}</h3>
+                              {item.timeRange && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {item.timeRange}
+                                </div>
+                              )}
+                            </div>
                             <Button
                               variant="ghost"
                               size="icon"
                               className={cn(
                                 "h-6 w-6", 
-                                item.completed && "text-primary"
+                                item.completed && "text-green-600"
                               )}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -89,7 +114,12 @@ export function RoutineTable() {
                               <Check className="h-4 w-4" />
                             </Button>
                           </div>
-                          {item.notes.length > 0 && (
+                          {item.category && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {item.category}
+                            </div>
+                          )}
+                          {item.notes && item.notes.length > 0 && (
                             <div className="text-xs text-muted-foreground mt-1">
                               {item.notes.length} note{item.notes.length !== 1 && 's'}
                             </div>

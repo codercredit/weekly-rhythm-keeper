@@ -15,9 +15,9 @@ export function DetailPanel() {
   const { selectedItem, setSelectedItem, addNote, deleteNote, toggleCompleted, deleteRoutineItem } = useRoutine();
   const [newNote, setNewNote] = useState("");
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (selectedItem && newNote.trim()) {
-      addNote(selectedItem.id, newNote);
+      await addNote(selectedItem.id, newNote);
       setNewNote("");
     }
   };
@@ -42,14 +42,17 @@ export function DetailPanel() {
           <>
             <SheetHeader>
               <SheetTitle className="flex justify-between items-center">
-                <span>{selectedItem.title}</span>
+                <div className="flex items-center">
+                  {selectedItem.emoji && <span className="mr-2">{selectedItem.emoji}</span>}
+                  <span>{selectedItem.title}</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => toggleCompleted(selectedItem.id)}
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className={`h-4 w-4 ${selectedItem.completed ? "text-green-600" : ""}`} />
                   </Button>
                   <Button
                     variant="destructive"
@@ -72,11 +75,24 @@ export function DetailPanel() {
               </SheetTitle>
               <div className="text-muted-foreground">
                 {formatDay(selectedItem.day)} • {formatTimeBlock(selectedItem.timeBlock)}
+                {selectedItem.timeRange && ` • ${selectedItem.timeRange}`}
               </div>
+              {selectedItem.category && (
+                <div className="text-muted-foreground">
+                  Category: {selectedItem.category}
+                </div>
+              )}
               {selectedItem.completed && (
-                <div className="text-primary font-medium">Completed</div>
+                <div className="text-green-600 font-medium">Completed</div>
               )}
             </SheetHeader>
+            
+            {selectedItem.description && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium">Description</h3>
+                <p className="text-sm text-muted-foreground mt-1">{selectedItem.description}</p>
+              </div>
+            )}
 
             <div className="mt-6">
               <h3 className="mb-2 font-medium">Add Note</h3>
@@ -97,7 +113,7 @@ export function DetailPanel() {
             {selectedItem.notes.length > 0 ? (
               <ScrollArea className="h-[300px]">
                 <div className="space-y-4">
-                  {[...selectedItem.notes].reverse().map((note) => (
+                  {selectedItem.notes.map((note) => (
                     <Card key={note.id}>
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">

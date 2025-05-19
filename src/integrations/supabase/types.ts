@@ -9,7 +9,80 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      routine_items: {
+        Row: {
+          category: string | null
+          color: string | null
+          completed: boolean | null
+          created_at: string | null
+          day: string
+          description: string | null
+          emoji: string | null
+          id: string
+          time_block: string
+          time_range: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          color?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          day: string
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          time_block: string
+          time_range?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          color?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          day?: string
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          time_block?: string
+          time_range?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      routine_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          routine_item_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          routine_item_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          routine_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_notes_routine_item_id_fkey"
+            columns: ["routine_item_id"]
+            isOneToOne: false
+            referencedRelation: "routine_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

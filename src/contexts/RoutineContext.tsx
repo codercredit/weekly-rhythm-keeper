@@ -1,212 +1,258 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { RoutineItem, RoutineData, DEFAULT_ROUTINE_ITEMS, Note, WeekDay, TimeBlock, generateItemId } from "../types/routine";
+import { RoutineItem, RoutineData, Note, WeekDay, TimeBlock } from "../types/routine";
 import { toast } from "sonner";
+import * as supabaseService from "../services/supabaseService";
 
 interface RoutineContextType {
   routineData: RoutineData;
   selectedItem: RoutineItem | null;
   setSelectedItem: (item: RoutineItem | null) => void;
-  addRoutineItem: (day: WeekDay, timeBlock: TimeBlock, title: string) => void;
-  updateRoutineItem: (itemId: string, updates: Partial<RoutineItem>) => void;
-  deleteRoutineItem: (itemId: string) => void;
-  addNote: (itemId: string, content: string) => void;
-  deleteNote: (itemId: string, noteId: string) => void;
-  toggleCompleted: (itemId: string) => void;
+  addRoutineItem: (day: WeekDay, timeBlock: TimeBlock, title: string) => Promise<void>;
+  updateRoutineItem: (itemId: string, updates: Partial<RoutineItem>) => Promise<void>;
+  deleteRoutineItem: (itemId: string) => Promise<void>;
+  addNote: (itemId: string, content: string) => Promise<void>;
+  deleteNote: (itemId: string, noteId: string) => Promise<void>;
+  toggleCompleted: (itemId: string) => Promise<void>;
   exportData: () => void;
 }
 
 const RoutineContext = createContext<RoutineContextType | undefined>(undefined);
 
 export function RoutineProvider({ children }: { children: React.ReactNode }) {
-  const [routineData, setRoutineData] = useState<RoutineData>({ items: {} });
+  const [routineData, setRoutineData] = useState<RoutineData>({ items: {}, isLoading: true });
   const [selectedItem, setSelectedItem] = useState<RoutineItem | null>(null);
 
-  // Load data from localStorage on mount
+  // Load data from Supabase on mount
   useEffect(() => {
-    const savedData = localStorage.getItem("routineData");
-    if (savedData) {
+    async function loadData() {
       try {
-        setRoutineData(JSON.parse(savedData));
+        setRoutineData(prev => ({ ...prev, isLoading: true }));
+        const items = await supabaseService.fetchRoutineItems();
+        
+        const itemsMap: Record<string, RoutineItem> = {};
+        items.forEach(item => {
+          itemsMap[item.id] = item;
+        });
+        
+        setRoutineData({ items: itemsMap, isLoading: false });
       } catch (error) {
-        console.error("Failed to parse routine data:", error);
-        initializeDefaultData();
+        console.error("Failed to load routine data:", error);
+        toast.error("Failed to load your routine data");
+        setRoutineData(prev => ({ ...prev, isLoading: false }));
       }
-    } else {
-      initializeDefaultData();
     }
+    
+    loadData();
   }, []);
 
-  // Save data to localStorage whenever it changes
+  // Load notes for selected item
   useEffect(() => {
-    if (Object.keys(routineData.items).length) {
-      localStorage.setItem("routineData", JSON.stringify(routineData));
-    }
-  }, [routineData]);
-
-  function initializeDefaultData() {
-    const itemsMap: Record<string, RoutineItem> = {};
-    DEFAULT_ROUTINE_ITEMS.forEach(item => {
-      itemsMap[item.id] = item;
-    });
-    
-    setRoutineData({ items: itemsMap });
-  }
-
-  function addRoutineItem(day: WeekDay, timeBlock: TimeBlock, title: string) {
-    const newItem: RoutineItem = {
-      id: generateItemId(day, timeBlock),
-      title,
-      day,
-      timeBlock,
-      notes: [],
-      completed: false
-    };
-
-    setRoutineData(prev => ({
-      ...prev,
-      items: {
-        ...prev.items,
-        [newItem.id]: newItem
+    if (selectedItem) {
+      async function loadNotes() {
+        try {
+          const notes = await supabaseService.fetchNotes(selectedItem.id);
+          setSelectedItem(prev => prev ? { ...prev, notes } : null);
+        } catch (error) {
+          console.error("Failed to load notes:", error);
+          toast.error("Failed to load notes");
+        }
       }
-    }));
+      
+      loadNotes();
+    }
+  }, [selectedItem?.id]);
 
-    toast.success("New routine item added");
-  }
+  async function addRoutineItem(day: WeekDay, timeBlock: TimeBlock, title: string) {
+    try {
+      const newItem = await supabaseService.addRoutineItem({
+        title,
+        day,
+        timeBlock,
+        completed: false
+      });
 
-  function updateRoutineItem(itemId: string, updates: Partial<RoutineItem>) {
-    setRoutineData(prev => {
-      if (!prev.items[itemId]) return prev;
-
-      return {
+      setRoutineData(prev => ({
         ...prev,
         items: {
           ...prev.items,
-          [itemId]: {
-            ...prev.items[itemId],
-            ...updates
-          }
+          [newItem.id]: newItem
         }
-      };
-    });
+      }));
 
-    // If the selected item is being updated, update it as well
-    if (selectedItem && selectedItem.id === itemId) {
-      setSelectedItem(prev => prev ? { ...prev, ...updates } : null);
+      toast.success("New routine item added");
+    } catch (error) {
+      console.error("Failed to add routine item:", error);
+      toast.error("Failed to add routine item");
     }
-
-    toast.success("Routine item updated");
   }
 
-  function deleteRoutineItem(itemId: string) {
-    setRoutineData(prev => {
-      const newItems = { ...prev.items };
-      delete newItems[itemId];
-      return { ...prev, items: newItems };
-    });
+  async function updateRoutineItem(itemId: string, updates: Partial<RoutineItem>) {
+    try {
+      await supabaseService.updateRoutineItem(itemId, updates);
 
-    // If the selected item is being deleted, clear it
-    if (selectedItem && selectedItem.id === itemId) {
-      setSelectedItem(null);
-    }
+      setRoutineData(prev => {
+        if (!prev.items[itemId]) return prev;
 
-    toast.success("Routine item deleted");
-  }
-
-  function addNote(itemId: string, content: string) {
-    const newNote: Note = {
-      id: `note-${new Date().getTime()}`,
-      content,
-      createdAt: new Date().toISOString()
-    };
-
-    setRoutineData(prev => {
-      if (!prev.items[itemId]) return prev;
-
-      return {
-        ...prev,
-        items: {
-          ...prev.items,
-          [itemId]: {
-            ...prev.items[itemId],
-            notes: [...prev.items[itemId].notes, newNote]
-          }
-        }
-      };
-    });
-
-    // Update selected item if this note is for the selected item
-    if (selectedItem && selectedItem.id === itemId) {
-      setSelectedItem(prev => {
-        if (!prev) return null;
         return {
           ...prev,
-          notes: [...prev.notes, newNote]
+          items: {
+            ...prev.items,
+            [itemId]: {
+              ...prev.items[itemId],
+              ...updates
+            }
+          }
         };
       });
-    }
 
-    toast.success("Note added");
+      // If the selected item is being updated, update it as well
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem(prev => prev ? { ...prev, ...updates } : null);
+      }
+
+      toast.success("Routine item updated");
+    } catch (error) {
+      console.error("Failed to update routine item:", error);
+      toast.error("Failed to update routine item");
+    }
   }
 
-  function deleteNote(itemId: string, noteId: string) {
-    setRoutineData(prev => {
-      if (!prev.items[itemId]) return prev;
+  async function deleteRoutineItem(itemId: string) {
+    try {
+      await supabaseService.deleteRoutineItem(itemId);
 
-      return {
-        ...prev,
-        items: {
-          ...prev.items,
-          [itemId]: {
-            ...prev.items[itemId],
-            notes: prev.items[itemId].notes.filter(note => note.id !== noteId)
-          }
-        }
-      };
-    });
-
-    // Update selected item if this note is being deleted from the selected item
-    if (selectedItem && selectedItem.id === itemId) {
-      setSelectedItem(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          notes: prev.notes.filter(note => note.id !== noteId)
-        };
+      setRoutineData(prev => {
+        const newItems = { ...prev.items };
+        delete newItems[itemId];
+        return { ...prev, items: newItems };
       });
-    }
 
-    toast.success("Note deleted");
+      // If the selected item is being deleted, clear it
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem(null);
+      }
+
+      toast.success("Routine item deleted");
+    } catch (error) {
+      console.error("Failed to delete routine item:", error);
+      toast.error("Failed to delete routine item");
+    }
   }
 
-  function toggleCompleted(itemId: string) {
-    setRoutineData(prev => {
-      if (!prev.items[itemId]) return prev;
+  async function addNote(itemId: string, content: string) {
+    try {
+      const newNote = await supabaseService.addNote(itemId, content);
 
-      return {
-        ...prev,
-        items: {
-          ...prev.items,
-          [itemId]: {
-            ...prev.items[itemId],
-            completed: !prev.items[itemId].completed
-          }
-        }
-      };
-    });
+      setRoutineData(prev => {
+        if (!prev.items[itemId]) return prev;
 
-    // Update selected item if it's being toggled
-    if (selectedItem && selectedItem.id === itemId) {
-      setSelectedItem(prev => {
-        if (!prev) return null;
         return {
           ...prev,
-          completed: !prev.completed
+          items: {
+            ...prev.items,
+            [itemId]: {
+              ...prev.items[itemId],
+              notes: [...(prev.items[itemId].notes || []), newNote]
+            }
+          }
         };
       });
-    }
 
-    toast.success("Status updated");
+      // Update selected item if this note is for the selected item
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            notes: [...prev.notes, newNote]
+          };
+        });
+      }
+
+      toast.success("Note added");
+    } catch (error) {
+      console.error("Failed to add note:", error);
+      toast.error("Failed to add note");
+    }
+  }
+
+  async function deleteNote(itemId: string, noteId: string) {
+    try {
+      await supabaseService.deleteNote(noteId);
+
+      setRoutineData(prev => {
+        if (!prev.items[itemId]) return prev;
+
+        return {
+          ...prev,
+          items: {
+            ...prev.items,
+            [itemId]: {
+              ...prev.items[itemId],
+              notes: prev.items[itemId].notes.filter(note => note.id !== noteId)
+            }
+          }
+        };
+      });
+
+      // Update selected item if this note is being deleted from the selected item
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            notes: prev.notes.filter(note => note.id !== noteId)
+          };
+        });
+      }
+
+      toast.success("Note deleted");
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+      toast.error("Failed to delete note");
+    }
+  }
+
+  async function toggleCompleted(itemId: string) {
+    try {
+      const currentItem = routineData.items[itemId];
+      if (!currentItem) return;
+      
+      const newCompletedState = !currentItem.completed;
+      await supabaseService.toggleCompleted(itemId, newCompletedState);
+
+      setRoutineData(prev => {
+        if (!prev.items[itemId]) return prev;
+
+        return {
+          ...prev,
+          items: {
+            ...prev.items,
+            [itemId]: {
+              ...prev.items[itemId],
+              completed: newCompletedState
+            }
+          }
+        };
+      });
+
+      // Update selected item if it's being toggled
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            completed: newCompletedState
+          };
+        });
+      }
+
+      toast.success(newCompletedState ? "Marked as completed" : "Marked as incomplete");
+    } catch (error) {
+      console.error("Failed to toggle completed status:", error);
+      toast.error("Failed to update status");
+    }
   }
 
   function exportData() {
