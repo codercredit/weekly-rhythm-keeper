@@ -1,13 +1,46 @@
-
 import React from "react";
 import { useRoutine } from "@/contexts/RoutineContext";
 import { CategoryFilter } from "./CategoryFilter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 
 export function RoutineManager() {
-  const { showCategoryFilter, showCompletedOnly } = useRoutine();
+  const { 
+    showCategoryFilter, 
+    showCompletedOnly, 
+    toggleCompletedFilter,
+    addRoutineItem,
+    routineData,
+    updateRoutineItem
+  } = useRoutine();
+  
+  // Function to add a new task
+  const handleAddNewTask = () => {
+    // Add a new task with default values - using "monday" and "morning" as defaults
+    addRoutineItem("monday", "morning", "New Task");
+  };
+  
+  // Function to mark all tasks as complete or incomplete
+  const handleMarkAll = () => {
+    const items = Object.values(routineData.items);
+    
+    // If showing completed only, mark all as incomplete
+    // Otherwise, mark all as complete
+    const newStatus = showCompletedOnly ? false : true;
+    
+    // Update each item's status
+    items.forEach(item => {
+      updateRoutineItem(item.id, { completed: newStatus });
+    });
+  };
+  
+  // Function to sort items by priority (dummy implementation for now)
+  const handleSortByPriority = () => {
+    // In a real implementation, this would sort by a priority field
+    // For now, we'll just show a toast message
+    console.log("Sort by priority clicked");
+  };
   
   return (
     <div className="mb-8">
@@ -18,23 +51,21 @@ export function RoutineManager() {
           <CardTitle className="text-lg">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm" className="w-full" onClick={handleAddNewTask}>
             <Plus className="mr-2 h-4 w-4" /> Add New Task
           </Button>
           
-          {showCompletedOnly && (
-            <Button variant="outline" size="sm" className="w-full">
-              Mark All as Incomplete
-            </Button>
-          )}
+          <Button variant="outline" size="sm" className="w-full" onClick={handleMarkAll}>
+            {showCompletedOnly ? (
+              <>Mark All as Incomplete</>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" /> Mark All as Complete
+              </>
+            )}
+          </Button>
           
-          {!showCompletedOnly && (
-            <Button variant="outline" size="sm" className="w-full">
-              Mark All as Complete
-            </Button>
-          )}
-          
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm" className="w-full" onClick={handleSortByPriority}>
             Sort by Priority
           </Button>
         </CardContent>
