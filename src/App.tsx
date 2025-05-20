@@ -7,8 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { RoutineProvider } from "./contexts/RoutineContext";
+import { BlogProvider } from "./contexts/BlogContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import BlogDetail from "./pages/BlogDetail";
+import BlogList from "./pages/BlogList";
+import BlogManagement from "./pages/BlogManagement";
 
 const queryClient = new QueryClient();
 
@@ -16,17 +20,22 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <RoutineProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <BlogProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/blog" element={<BlogList />} />
+                <Route path="/blog/:id" element={<BlogDetail />} />
+                <Route path="/blog-management" element={<BlogManagement />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </BlogProvider>
       </RoutineProvider>
     </ThemeProvider>
   </QueryClientProvider>
