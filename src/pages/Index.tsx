@@ -3,6 +3,8 @@ import { Header } from "@/components/Header";
 import { RoutineTable } from "@/components/RoutineTable";
 import { DetailPanel } from "@/components/DetailPanel";
 import { RoutineManager } from "@/components/RoutineManager";
+import { BlogPost } from "@/components/BlogPost";
+import { Footer } from "@/components/Footer";
 
 const Index = () => {
   return (
@@ -16,10 +18,12 @@ const Index = () => {
           </p>
         </div>
         
+        <BlogPost />
         <RoutineManager />
         <RoutineTable />
         <DetailPanel />
       </main>
+      <Footer />
     </div>
   );
 };
