@@ -1,9 +1,10 @@
+
 import React from "react";
 import { useRoutine } from "@/contexts/RoutineContext";
 import { CategoryFilter } from "./CategoryFilter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, X } from "lucide-react";
 
 export function RoutineManager() {
   const { 
@@ -22,16 +23,12 @@ export function RoutineManager() {
   };
   
   // Function to mark all tasks as complete or incomplete
-  const handleMarkAll = () => {
+  const handleMarkAll = (status: boolean) => {
     const items = Object.values(routineData.items);
     
-    // If showing completed only, mark all as incomplete
-    // Otherwise, mark all as complete
-    const newStatus = showCompletedOnly ? false : true;
-    
-    // Update each item's status
+    // Update each item's status to the specified value
     items.forEach(item => {
-      updateRoutineItem(item.id, { completed: newStatus });
+      updateRoutineItem(item.id, { completed: status });
     });
   };
   
@@ -50,19 +47,27 @@ export function RoutineManager() {
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg">Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
           <Button variant="outline" size="sm" className="w-full" onClick={handleAddNewTask}>
             <Plus className="mr-2 h-4 w-4" /> Add New Task
           </Button>
           
-          <Button variant="outline" size="sm" className="w-full" onClick={handleMarkAll}>
-            {showCompletedOnly ? (
-              <>Mark All as Incomplete</>
-            ) : (
-              <>
-                <Check className="mr-2 h-4 w-4" /> Mark All as Complete
-              </>
-            )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full" 
+            onClick={() => handleMarkAll(true)}
+          >
+            <Check className="mr-2 h-4 w-4" /> Mark All Complete
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full" 
+            onClick={() => handleMarkAll(false)}
+          >
+            <X className="mr-2 h-4 w-4" /> Mark All Incomplete
           </Button>
           
           <Button variant="outline" size="sm" className="w-full" onClick={handleSortByPriority}>
