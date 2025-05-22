@@ -8,9 +8,11 @@ import { useRoutine } from "@/contexts/RoutineContext";
 import { DAYS_OF_WEEK, TIME_BLOCKS, TimeBlock, WeekDay } from "@/types/routine";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function RoutineTable() {
   const { routineData, setSelectedItem, addRoutineItem, toggleCompleted } = useRoutine();
+  const { isAdmin, user } = useAuth();
   const [newItemDay, setNewItemDay] = useState<WeekDay>("monday");
   const [newItemTimeBlock, setNewItemTimeBlock] = useState<TimeBlock>("morning");
   const [newItemTitle, setNewItemTitle] = useState("");
@@ -82,11 +84,12 @@ export function RoutineTable() {
                         <div
                           key={item.id}
                           className={cn(
-                            "routine-item cursor-pointer p-2 rounded-md border",
+                            "routine-item p-2 rounded-md border",
                             item.completed ? "bg-green-50 border-green-200" : "bg-white border-slate-200",
-                            item.color && `border-l-4 border-l-[${item.color}]`
+                            item.color && `border-l-4 border-l-[${item.color}]`,
+                            isAdmin && "cursor-pointer"
                           )}
-                          onClick={() => setSelectedItem(item)}
+                          onClick={() => isAdmin && setSelectedItem(item)}
                           style={item.color ? { borderLeftColor: item.color } : {}}
                         >
                           <div className="flex justify-between items-start">
@@ -99,20 +102,22 @@ export function RoutineTable() {
                                 </div>
                               )}
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                "h-6 w-6", 
-                                item.completed && "text-green-600"
-                              )}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleCompleted(item.id);
-                              }}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                  "h-6 w-6", 
+                                  item.completed && "text-green-600"
+                                )}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleCompleted(item.id);
+                                }}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                           {item.category && (
                             <div className="text-xs text-muted-foreground mt-1">
@@ -126,18 +131,57 @@ export function RoutineTable() {
                           )}
                         </div>
                       ))}
+                      
+                      {isAdmin && (
+                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              className="w-full h-8 text-xs text-muted-foreground"
+                              onClick={() => {
+                                setNewItemDay(day);
+                                setNewItemTimeBlock(timeBlock);
+                              }}
+                            >
+                              + Add item
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add New Routine Item</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-4">
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium">
+                                  {formatDay(newItemDay)} - {formatTimeBlock(newItemTimeBlock)}
+                                </p>
+                                <Input
+                                  placeholder="Item title"
+                                  value={newItemTitle}
+                                  onChange={(e) => setNewItemTitle(e.target.value)}
+                                />
+                              </div>
+                              <Button onClick={handleAddItem} className="w-full">
+                                Add Item
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
+                  ) : (
+                    isAdmin ? (
                       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            className="w-full h-8 text-xs text-muted-foreground"
+                          <div 
+                            className="h-full min-h-[80px] border border-dashed border-muted rounded-md flex items-center justify-center cursor-pointer hover:border-muted-foreground"
                             onClick={() => {
                               setNewItemDay(day);
                               setNewItemTimeBlock(timeBlock);
                             }}
                           >
-                            + Add item
-                          </Button>
+                            <span className="text-sm text-muted-foreground">+ Add item</span>
+                          </div>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
@@ -160,41 +204,11 @@ export function RoutineTable() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                    </div>
-                  ) : (
-                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                      <DialogTrigger asChild>
-                        <div 
-                          className="h-full min-h-[80px] border border-dashed border-muted rounded-md flex items-center justify-center cursor-pointer hover:border-muted-foreground"
-                          onClick={() => {
-                            setNewItemDay(day);
-                            setNewItemTimeBlock(timeBlock);
-                          }}
-                        >
-                          <span className="text-sm text-muted-foreground">+ Add item</span>
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add New Routine Item</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 pt-4">
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">
-                              {formatDay(newItemDay)} - {formatTimeBlock(newItemTimeBlock)}
-                            </p>
-                            <Input
-                              placeholder="Item title"
-                              value={newItemTitle}
-                              onChange={(e) => setNewItemTitle(e.target.value)}
-                            />
-                          </div>
-                          <Button onClick={handleAddItem} className="w-full">
-                            Add Item
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    ) : (
+                      <div className="h-full min-h-[80px] border border-dashed border-muted rounded-md flex items-center justify-center">
+                        <span className="text-sm text-muted-foreground">No items</span>
+                      </div>
+                    )
                   )}
                 </div>
               );

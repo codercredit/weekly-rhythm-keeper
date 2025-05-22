@@ -5,6 +5,7 @@ import { CategoryFilter } from "./CategoryFilter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Check, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function RoutineManager() {
   const { 
@@ -15,6 +16,11 @@ export function RoutineManager() {
     routineData,
     updateRoutineItem
   } = useRoutine();
+
+  const { isAdmin } = useAuth();
+  
+  // If not admin, don't render the manager
+  if (!isAdmin) return null;
   
   // Function to add a new task
   const handleAddNewTask = () => {
@@ -35,7 +41,6 @@ export function RoutineManager() {
   // Function to sort items by priority (dummy implementation for now)
   const handleSortByPriority = () => {
     // In a real implementation, this would sort by a priority field
-    // For now, we'll just show a toast message
     console.log("Sort by priority clicked");
   };
   
