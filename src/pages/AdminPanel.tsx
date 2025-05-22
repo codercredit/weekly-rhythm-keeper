@@ -47,6 +47,11 @@ const AdminPanel = () => {
   const handleCreatePost = async (values: BlogFormValues) => {
     await addPost({
       ...values,
+      title: values.title || "",
+      description: values.description || "",
+      content: values.content || "",
+      author: values.author || user?.email?.split('@')[0] || "Admin",
+      readTime: values.readTime || "3 min read",
       date: format(new Date(), "MMMM dd, yyyy"),
     });
     setIsCreateDialogOpen(false);
