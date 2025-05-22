@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -87,8 +86,13 @@ const BlogManagement = () => {
     const today = new Date().toISOString().split('T')[0];
     
     addPost({
-      ...values,
+      title: values.title,
+      description: values.description,
+      content: values.content,
+      author: values.author,
+      readTime: values.readTime,
       date: today,
+      image: values.image,
     });
     
     setIsCreateDialogOpen(false);
@@ -288,7 +292,7 @@ const BlogManagement = () => {
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
-                      size="icon" 
+                      size="sm" 
                       onClick={() => handleEdit(post)}
                     >
                       <Edit className="h-4 w-4" />

@@ -13,11 +13,17 @@ interface BlogPostProps {
   readTime: string;
   featured?: boolean;
   className?: string;
+  image?: string;
 }
 
-export function BlogPost({ id, title, description, date, readTime, featured = false, className = "" }: BlogPostProps) {
+export function BlogPost({ id, title, description, date, readTime, featured = false, className = "", image }: BlogPostProps) {
   return (
     <Card className={`${className} ${featured ? "border-t-4 border-t-primary shadow-md" : "h-full"}`}>
+      {image && (
+        <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+          <img src={image} alt={title} className="h-full w-full object-cover" />
+        </div>
+      )}
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
