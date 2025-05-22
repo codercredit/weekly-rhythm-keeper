@@ -15,7 +15,7 @@ const BlogDetail = () => {
     if (id) {
       getPost(id);
     }
-  }, [id]);
+  }, [id, getPost]);
 
   return (
     <div className="flex flex-col min-h-screen">

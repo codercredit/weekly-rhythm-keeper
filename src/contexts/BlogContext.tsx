@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { BlogPost } from "@/types/blog";
 import { 
   fetchBlogPosts, 
@@ -36,7 +36,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   const [postsPerPage] = useState(8);
   const { toast } = useToast();
 
-  const fetchPosts = async (page: number = currentPage) => {
+  const fetchPosts = useCallback(async (page: number = currentPage) => {
     setIsLoading(true);
     try {
       const { data, count } = await fetchBlogPosts(page, postsPerPage);
@@ -53,9 +53,9 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, postsPerPage, toast]);
 
-  const getPost = async (id: string) => {
+  const getPost = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
       const post = await fetchBlogPost(id);
@@ -70,7 +70,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   const addPost = async (post: Omit<BlogPost, 'id'>) => {
     setIsLoading(true);

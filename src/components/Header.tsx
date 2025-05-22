@@ -1,53 +1,89 @@
 
+import React from "react";
+import { ModeToggle } from "@/components/ModeToggle";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useRoutine } from "@/contexts/RoutineContext";
-import { Sun, Moon, Calendar, Filter, Settings } from "lucide-react";
-import { 
+import { Home, BookOpen, Edit, User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Header() {
-  const { theme, toggleTheme } = useTheme();
-  const { exportData, toggleCategoryFilter, toggleCompletedFilter } = useRoutine();
+export function Header({ className }: { className?: string }) {
+  const { user, signOut, isAdmin } = useAuth();
 
   return (
-    <header className="border-b bg-background sticky top-0 z-10">
-      <div className="container mx-auto py-4 flex justify-between items-center">
+    <header className={cn("border-b bg-background sticky top-0 z-50", className)}>
+      <div className="container flex h-16 items-center justify-between py-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            mkk360Routine
-          </h1>
+          <Link to="/" className="text-xl font-bold">My App</Link>
         </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Options
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuItem onClick={exportData}>
-                <Calendar className="h-4 w-4 mr-2" />
-                Export Data
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleCategoryFilter}>
-                <Filter className="h-4 w-4 mr-2" />
-                Toggle Category Filter
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleCompletedFilter}>
-                <Filter className="h-4 w-4 mr-2" />
-                Show/Hide Completed
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button onClick={toggleTheme} variant="ghost" size="icon">
-            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        
+        <nav className="hidden sm:flex items-center space-x-1">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/">
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Link>
           </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/blog">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Blog
+            </Link>
+          </Button>
+          {isAdmin && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin">
+                <Edit className="h-4 w-4 mr-2" />
+                Admin
+              </Link>
+            </Button>
+          )}
+        </nav>
+        
+        <div className="flex items-center gap-2">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>{user.email}</DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin">Admin Panel</Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem asChild>
+                  <Link to="/blog-management">Manage Blog</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/auth">
+                <User className="h-4 w-4 mr-2" />
+                Sign In
+              </Link>
+            </Button>
+          )}
+          <ModeToggle />
         </div>
       </div>
     </header>
