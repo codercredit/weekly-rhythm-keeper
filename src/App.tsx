@@ -34,14 +34,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/blog" element={<BlogList />} />
                   <Route path="/blog/:id" element={<BlogDetail />} />
-                  <Route 
-                    path="/blog-management" 
-                    element={
-                      <PrivateRoute>
-                        <BlogManagement />
-                      </PrivateRoute>
-                    } 
-                  />
+                  <Route path="/blog-management" element={<BlogManagement />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route 
                     path="/admin" 

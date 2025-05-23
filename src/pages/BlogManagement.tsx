@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useBlog } from "@/contexts/BlogContext";
@@ -12,6 +11,8 @@ import { CreateBlogDialog } from "@/components/blog/CreateBlogDialog";
 import { EditBlogDialog } from "@/components/blog/EditBlogDialog";
 import { BlogManagementHeader } from "@/components/blog/BlogManagementHeader";
 import { BlogFormValues } from "@/components/blog/BlogPostForm";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 const BlogManagement = () => {
   const { user, isLoading: authLoading } = useAuth();
@@ -21,12 +22,9 @@ const BlogManagement = () => {
   const [editingPost, setEditingPost] = useState<BlogPostType | null>(null);
 
   useEffect(() => {
-    if (user) {
-      fetchPosts();
-    }
-  }, [user]);
+    fetchPosts();
+  }, []);
 
-  // Redirect to auth if not logged in
   if (authLoading) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -37,10 +35,6 @@ const BlogManagement = () => {
         <Footer />
       </div>
     );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
   }
 
   const handleCreateSubmit = (values: BlogFormValues) => {
@@ -104,6 +98,16 @@ const BlogManagement = () => {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 container mx-auto py-8 px-4">
+        {!user && (
+          <Alert className="mb-6">
+            <InfoIcon className="h-4 w-4" />
+            <AlertTitle>Guest Mode</AlertTitle>
+            <AlertDescription>
+              You are viewing the blog management in guest mode. Changes will be temporary and won't be saved. Please sign in to save your blog posts permanently.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <BlogManagementHeader onCreateNew={() => setIsCreateDialogOpen(true)} />
 
         {renderContent()}

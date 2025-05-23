@@ -4,7 +4,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Home, BookOpen, Edit, User, LogOut } from "lucide-react";
+import { Home, BookOpen, Edit, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -38,10 +38,16 @@ export function Header({ className }: { className?: string }) {
               Blog
             </Link>
           </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/blog-management">
+              <Edit className="h-4 w-4 mr-2" />
+              Manage Blog
+            </Link>
+          </Button>
           {isAdmin && (
             <Button variant="ghost" size="sm" asChild>
               <Link to="/admin">
-                <Edit className="h-4 w-4 mr-2" />
+                <Settings className="h-4 w-4 mr-2" />
                 Admin
               </Link>
             </Button>
@@ -65,9 +71,6 @@ export function Header({ className }: { className?: string }) {
                     <Link to="/admin">Admin Panel</Link>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem asChild>
-                  <Link to="/blog-management">Manage Blog</Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
                   <LogOut className="h-4 w-4 mr-2" />
@@ -79,7 +82,7 @@ export function Header({ className }: { className?: string }) {
             <Button variant="outline" size="sm" asChild>
               <Link to="/auth">
                 <User className="h-4 w-4 mr-2" />
-                Sign In
+                Sign In / Sign Up
               </Link>
             </Button>
           )}

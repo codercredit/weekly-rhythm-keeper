@@ -15,7 +15,7 @@ import { InfoIcon } from "lucide-react";
 import { useEffect } from "react";
 
 const Index = () => {
-  const { isAdmin, user } = useAuth();
+  const { user } = useAuth();
   const { posts, isLoading: blogLoading, fetchPosts } = useBlog();
 
   useEffect(() => {
@@ -36,12 +36,12 @@ const Index = () => {
           </p>
         </div>
         
-        {!isAdmin && (
+        {!user && (
           <Alert className="mb-6">
             <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Demo Mode</AlertTitle>
+            <AlertTitle>Guest Mode</AlertTitle>
             <AlertDescription>
-              You are viewing the routine dashboard in demo mode. To edit items, remove or update routines, please login as an admin.
+              You are viewing the routine dashboard in guest mode. To save your progress and access all features, please sign in or create an account.
             </AlertDescription>
           </Alert>
         )}
@@ -72,11 +72,9 @@ const Index = () => {
         ) : (
           <div className="border border-dashed border-muted-foreground/25 rounded-lg p-8 text-center mb-8">
             <p className="text-muted-foreground">No blog posts available yet.</p>
-            {isAdmin && (
-              <Button variant="outline" className="mt-2" asChild>
-                <Link to="/blog-management">Create First Post</Link>
-              </Button>
-            )}
+            <Button variant="outline" className="mt-2" asChild>
+              <Link to="/blog-management">Create First Post</Link>
+            </Button>
           </div>
         )}
 
