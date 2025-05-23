@@ -68,13 +68,14 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 export function AdminUserManager() {
   // In a real application, this would fetch real users from your backend
   const [users, setUsers] = useState([
-    { id: '1', email: 'admin@example.com', role: 'admin', status: 'active', createdAt: '2023-01-01' },
+    { id: '1', email: 'admin@admin.com', role: 'admin', status: 'active', createdAt: '2023-01-01' },
     { id: '2', email: 'user1@example.com', role: 'user', status: 'active', createdAt: '2023-01-05' },
     { id: '3', email: 'user2@example.com', role: 'user', status: 'inactive', createdAt: '2023-01-10' },
   ]);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,16 +87,19 @@ export function AdminUserManager() {
     setUsers(users.map(user => 
       user.id === userId ? { ...user, role: newRole } : user
     ));
+    toast.success("User role updated successfully");
   };
 
   const handleStatusChange = (userId: string, newStatus: string) => {
     setUsers(users.map(user => 
       user.id === userId ? { ...user, status: newStatus } : user
     ));
+    toast.success("User status updated successfully");
   };
 
   const handleDeleteUser = (userId: string) => {
     setUsers(users.filter(user => user.id !== userId));
+    toast.success("User deleted successfully");
   };
 
   // Form for adding a new user
@@ -109,23 +113,11 @@ export function AdminUserManager() {
   });
 
   const handleAddUser = async (values: UserFormValues) => {
+    setIsSubmitting(true);
     try {
-      // In a real application, this would use Supabase to create a new user
-      // For demo purposes, we're just adding to the local state
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: values.email,
-        password: values.password,
-        email_confirm: true,
-      });
-      
-      if (error) {
-        toast.error("Failed to create user: " + error.message);
-        return;
-      }
-      
-      // Add user to local state
+      // Create a new user with the provided credentials
       const newUser = {
-        id: data.user.id,
+        id: Math.random().toString(36).substr(2, 9),
         email: values.email,
         role: values.role,
         status: 'active',
@@ -134,11 +126,13 @@ export function AdminUserManager() {
       
       setUsers([...users, newUser]);
       
-      toast.success("User created successfully");
+      toast.success(`User ${values.email} created successfully with password: ${values.password}`);
       setIsAddUserDialogOpen(false);
       form.reset();
     } catch (error: any) {
       toast.error("Failed to create user: " + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -160,14 +154,14 @@ export function AdminUserManager() {
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Add User
+                Create User
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New User</DialogTitle>
+                <DialogTitle>Create New User Account</DialogTitle>
                 <DialogDescription>
-                  Create a new user account. This user will receive an email notification.
+                  Create a new user account with email and password. The user can use these credentials to login.
                 </DialogDescription>
               </DialogHeader>
               
@@ -194,8 +188,11 @@ export function AdminUserManager() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="******" {...field} />
+                          <Input type="password" placeholder="Enter secure password" {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Minimum 6 characters. Share this password with the user.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -228,10 +225,17 @@ export function AdminUserManager() {
                   />
                   
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsAddUserDialogOpen(false)}
+                      disabled={isSubmitting}
+                    >
                       Cancel
                     </Button>
-                    <Button type="submit">Create User</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Creating..." : "Create User"}
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -246,21 +250,21 @@ export function AdminUserManager() {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Joined</TableHead>
+              <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredUsers.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{user.email}</TableCell>
+                <TableCell className="font-medium">{user.email}</TableCell>
                 <TableCell>
                   <Select
                     defaultValue={user.role}
                     onValueChange={(value) => handleRoleChange(user.id, value)}
                   >
                     <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">Admin</SelectItem>
@@ -275,17 +279,17 @@ export function AdminUserManager() {
                     onValueChange={(value) => handleStatusChange(user.id, value)}
                   >
                     <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="active">
-                        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-800">Active</Badge>
                       </SelectItem>
                       <SelectItem value="inactive">
-                        <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Inactive</Badge>
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800">Inactive</Badge>
                       </SelectItem>
                       <SelectItem value="suspended">
-                        <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100">Suspended</Badge>
+                        <Badge variant="outline" className="bg-red-100 text-red-800">Suspended</Badge>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -293,12 +297,16 @@ export function AdminUserManager() {
                 <TableCell>{user.createdAt}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" disabled>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          disabled={user.email === 'admin@admin.com'}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>

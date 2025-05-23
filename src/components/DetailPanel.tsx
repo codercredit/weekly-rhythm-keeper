@@ -22,6 +22,14 @@ export function DetailPanel() {
     setSelectedItem(null);
   };
 
+  const handleSuccess = () => {
+    setSelectedItem(null);
+  };
+
+  const handleCancel = () => {
+    setSelectedItem(null);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md mx-auto overflow-hidden">
@@ -53,6 +61,8 @@ export function DetailPanel() {
         <CardContent>
           <EditRoutineItemForm
             item={selectedItem}
+            onCancel={handleCancel}
+            onSuccess={handleSuccess}
           />
         </CardContent>
       </Card>

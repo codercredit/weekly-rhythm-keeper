@@ -13,6 +13,7 @@ const BlogDetail = () => {
 
   useEffect(() => {
     if (id) {
+      console.log("Fetching post with ID:", id);
       getPost(id);
     }
   }, [id, getPost]);
@@ -52,7 +53,9 @@ const BlogDetail = () => {
               />
             )}
             
-            <div className="mt-8 leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedPost.content }} />
+            <div className="mt-8 leading-relaxed whitespace-pre-wrap">
+              {selectedPost.content}
+            </div>
           </article>
         ) : (
           <div className="text-center py-12">
