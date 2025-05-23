@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { BlogPost } from "@/types/blog";
 import { 
@@ -57,16 +56,20 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   const getPost = useCallback(async (id: string) => {
     setIsLoading(true);
+    setSelectedPost(null); // Clear previous post
     try {
+      console.log("Fetching blog post with ID:", id);
       const post = await fetchBlogPost(id);
+      console.log("Fetched post:", post);
       setSelectedPost(post);
     } catch (error) {
+      console.error("Failed to fetch blog post:", error);
       toast({
         title: "Error",
         description: "Failed to load blog post",
         variant: "destructive"
       });
-      console.error("Failed to fetch blog post:", error);
+      setSelectedPost(null);
     } finally {
       setIsLoading(false);
     }

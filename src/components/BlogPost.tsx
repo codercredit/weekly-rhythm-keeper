@@ -48,7 +48,7 @@ export function BlogPost({ id, title, description, date, readTime, featured = fa
             <Link to={`/blog/${id}`}>Read More</Link>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="ml-auto">
+          <Button variant="outline" size="sm" className="ml-auto" disabled>
             Read More
           </Button>
         )}
