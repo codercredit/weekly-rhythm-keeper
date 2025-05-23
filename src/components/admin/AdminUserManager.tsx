@@ -52,7 +52,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Edit, Trash2, UserPlus, Search } from "lucide-react";
+import { Edit, Trash2, UserPlus, Search, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -66,6 +66,11 @@ const userFormSchema = z.object({
 type UserFormValues = z.infer<typeof userFormSchema>;
 
 export function AdminUserManager() {
+  const { user } = useAuth();
+  
+  // Check if current user is master admin
+  const isMasterAdmin = user?.email === 'admin@admin.com';
+  
   // In a real application, this would fetch real users from your backend
   const [users, setUsers] = useState([
     { id: '1', email: 'admin@admin.com', role: 'admin', status: 'active', createdAt: '2023-01-01' },
@@ -84,6 +89,11 @@ export function AdminUserManager() {
   );
 
   const handleRoleChange = (userId: string, newRole: string) => {
+    if (!isMasterAdmin) {
+      toast.error("Only master admin can change user roles");
+      return;
+    }
+    
     setUsers(users.map(user => 
       user.id === userId ? { ...user, role: newRole } : user
     ));
@@ -91,6 +101,11 @@ export function AdminUserManager() {
   };
 
   const handleStatusChange = (userId: string, newStatus: string) => {
+    if (!isMasterAdmin) {
+      toast.error("Only master admin can change user status");
+      return;
+    }
+    
     setUsers(users.map(user => 
       user.id === userId ? { ...user, status: newStatus } : user
     ));
@@ -98,6 +113,11 @@ export function AdminUserManager() {
   };
 
   const handleDeleteUser = (userId: string) => {
+    if (!isMasterAdmin) {
+      toast.error("Only master admin can delete users");
+      return;
+    }
+    
     setUsers(users.filter(user => user.id !== userId));
     toast.success("User deleted successfully");
   };
@@ -113,6 +133,11 @@ export function AdminUserManager() {
   });
 
   const handleAddUser = async (values: UserFormValues) => {
+    if (!isMasterAdmin) {
+      toast.error("Only master admin can create new users");
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       // Create a new user with the provided credentials
@@ -150,100 +175,115 @@ export function AdminUserManager() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Create User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New User Account</DialogTitle>
-                <DialogDescription>
-                  Create a new user account with email and password. The user can use these credentials to login.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleAddUser)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="user@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="Enter secure password" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Minimum 6 characters. Share this password with the user.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+          {isMasterAdmin ? (
+            <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create User
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New User Account</DialogTitle>
+                  <DialogDescription>
+                    Create a new user account with email and password. The user can use these credentials to login.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleAddUser)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
+                            <Input placeholder="user@example.com" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="user">User</SelectItem>
-                            <SelectItem value="moderator">Moderator</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsAddUserDialogOpen(false)}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Creating..." : "Create User"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Enter secure password" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Minimum 6 characters. Share this password with the user.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a role" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="moderator">Moderator</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <DialogFooter>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsAddUserDialogOpen(false)}
+                        disabled={isSubmitting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Creating..." : "Create User"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button disabled>
+              <Lock className="h-4 w-4 mr-2" />
+              Master Admin Only
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
+        {!isMasterAdmin && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <p className="text-sm text-amber-800">
+              <Lock className="h-4 w-4 inline mr-1" />
+              Only the master admin (admin@admin.com) can manage users.
+            </p>
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -262,6 +302,7 @@ export function AdminUserManager() {
                   <Select
                     defaultValue={user.role}
                     onValueChange={(value) => handleRoleChange(user.id, value)}
+                    disabled={!isMasterAdmin}
                   >
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
@@ -277,6 +318,7 @@ export function AdminUserManager() {
                   <Select
                     defaultValue={user.status}
                     onValueChange={(value) => handleStatusChange(user.id, value)}
+                    disabled={!isMasterAdmin}
                   >
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
@@ -297,7 +339,11 @@ export function AdminUserManager() {
                 <TableCell>{user.createdAt}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="icon" disabled>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      disabled={!isMasterAdmin}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
@@ -305,7 +351,7 @@ export function AdminUserManager() {
                         <Button 
                           variant="outline" 
                           size="icon"
-                          disabled={user.email === 'admin@admin.com'}
+                          disabled={user.email === 'admin@admin.com' || !isMasterAdmin}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

@@ -9,19 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBlog } from "@/contexts/BlogContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
+import { useEffect } from "react";
 
 const Index = () => {
-  // Featured blog post data
-  const featuredPost = {
-    title: "Getting Started with mkk360Routine",
-    description: "Learn how to use mkk360Routine to boost your productivity and manage your daily schedule effectively.",
-    date: "May 20, 2025",
-    readTime: "5 min read",
-  };
-
   const { isAdmin, user } = useAuth();
+  const { posts, isLoading: blogLoading, fetchPosts } = useBlog();
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  // Get the most recent blog post as featured post
+  const featuredPost = posts.length > 0 ? posts[0] : null;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -54,14 +56,29 @@ const Index = () => {
           </Button>
         </div>
         
-        <BlogPost
-          title={featuredPost.title}
-          description={featuredPost.description}
-          date={featuredPost.date}
-          readTime={featuredPost.readTime}
-          featured={true}
-          className="mb-8"
-        />
+        {blogLoading ? (
+          <div className="h-48 bg-muted animate-pulse rounded-md mb-8"></div>
+        ) : featuredPost ? (
+          <BlogPost
+            id={featuredPost.id}
+            title={featuredPost.title}
+            description={featuredPost.description}
+            date={featuredPost.date}
+            readTime={featuredPost.readTime}
+            featured={true}
+            className="mb-8"
+            image={featuredPost.image}
+          />
+        ) : (
+          <div className="border border-dashed border-muted-foreground/25 rounded-lg p-8 text-center mb-8">
+            <p className="text-muted-foreground">No blog posts available yet.</p>
+            {isAdmin && (
+              <Button variant="outline" className="mt-2" asChild>
+                <Link to="/blog-management">Create First Post</Link>
+              </Button>
+            )}
+          </div>
+        )}
 
         <RoutineManager />
         <RoutineTable />
