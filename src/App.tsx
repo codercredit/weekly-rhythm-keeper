@@ -9,6 +9,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { RoutineProvider } from "./contexts/RoutineContext";
 import { BlogProvider } from "./contexts/BlogContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { PrivateRoute } from "./components/PrivateRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import BlogDetail from "./pages/BlogDetail";
@@ -33,9 +34,23 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/blog" element={<BlogList />} />
                   <Route path="/blog/:id" element={<BlogDetail />} />
-                  <Route path="/blog-management" element={<BlogManagement />} />
+                  <Route 
+                    path="/blog-management" 
+                    element={
+                      <PrivateRoute>
+                        <BlogManagement />
+                      </PrivateRoute>
+                    } 
+                  />
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/admin" element={<AdminPanel />} />
+                  <Route 
+                    path="/admin" 
+                    element={
+                      <PrivateRoute requiresAdmin={true}>
+                        <AdminPanel />
+                      </PrivateRoute>
+                    } 
+                  />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

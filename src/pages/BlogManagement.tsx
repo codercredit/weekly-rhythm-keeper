@@ -1,8 +1,10 @@
 
 import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useBlog } from "@/contexts/BlogContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { BlogPost as BlogPostType } from "@/types/blog";
 import { BlogPostList } from "@/components/blog/BlogPostList";
 import { EmptyBlogState } from "@/components/blog/EmptyBlogState";
@@ -10,17 +12,36 @@ import { CreateBlogDialog } from "@/components/blog/CreateBlogDialog";
 import { EditBlogDialog } from "@/components/blog/EditBlogDialog";
 import { BlogManagementHeader } from "@/components/blog/BlogManagementHeader";
 import { BlogFormValues } from "@/components/blog/BlogPostForm";
-import { Plus } from "lucide-react";
 
 const BlogManagement = () => {
+  const { user, isLoading: authLoading } = useAuth();
   const { posts, isLoading, fetchPosts, addPost, editPost, removePost } = useBlog();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPostType | null>(null);
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (user) {
+      fetchPosts();
+    }
+  }, [user]);
+
+  // Redirect to auth if not logged in
+  if (authLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 container mx-auto py-8 px-4 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   const handleCreateSubmit = (values: BlogFormValues) => {
     const today = new Date().toISOString().split('T')[0];
