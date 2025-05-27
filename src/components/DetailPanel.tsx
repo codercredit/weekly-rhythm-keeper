@@ -30,16 +30,16 @@ export function DetailPanel() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md mx-auto overflow-hidden">
-        <CardHeader className="relative pb-2">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md mx-auto overflow-hidden shadow-2xl border-0 bg-background/95 backdrop-blur">
+        <CardHeader className="relative pb-3 bg-gradient-to-r from-primary/5 to-secondary/5">
           <div className="flex justify-between items-center">
-            <CardTitle>{selectedItem.title}</CardTitle>
-            <div className="flex gap-2">
+            <CardTitle className="text-lg font-semibold">{selectedItem.title}</CardTitle>
+            <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
                 onClick={handleDelete}
               >
                 <Trash2 className="h-4 w-4" />
@@ -47,7 +47,7 @@ export function DetailPanel() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted h-8 w-8"
                 onClick={handleClose}
               >
                 <X className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function DetailPanel() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <EditRoutineItemForm
             item={selectedItem}
             onCancel={handleCancel}
