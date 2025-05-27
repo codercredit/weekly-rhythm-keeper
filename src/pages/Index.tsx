@@ -32,16 +32,19 @@ const Index = () => {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-2">My mkk360Routine</h2>
           <p className="text-muted-foreground">
-            Manage your daily schedule and habits. Click on any item to add notes or mark as complete.
+            {user 
+              ? "Manage your daily schedule and habits. Click on any item to add notes or mark as complete."
+              : "View the routine dashboard. Sign in to manage your personal routine items."
+            }
           </p>
         </div>
         
         {!user && (
           <Alert className="mb-6">
             <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Guest Mode</AlertTitle>
+            <AlertTitle>Sign In Required for Routine Management</AlertTitle>
             <AlertDescription>
-              You are viewing the routine dashboard in guest mode. To save your progress and access all features, please sign in or create an account.
+              You can view routine items as a guest, but to add, edit, delete, or mark items as complete, please sign in to your account.
             </AlertDescription>
           </Alert>
         )}

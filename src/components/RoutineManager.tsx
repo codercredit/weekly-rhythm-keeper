@@ -17,10 +17,10 @@ export function RoutineManager() {
     updateRoutineItem
   } = useRoutine();
 
-  const { isAdmin } = useAuth();
+  const { user } = useAuth();
   
-  // If not admin, don't render the manager
-  if (!isAdmin) return null;
+  // If not authenticated, don't render the manager
+  if (!user) return null;
   
   // Function to add a new task
   const handleAddNewTask = () => {

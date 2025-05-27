@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function RoutineTable() {
   const { routineData, setSelectedItem, addRoutineItem, toggleCompleted } = useRoutine();
-  const { isAdmin, user } = useAuth();
+  const { user } = useAuth();
   const [newItemDay, setNewItemDay] = useState<WeekDay>("monday");
   const [newItemTimeBlock, setNewItemTimeBlock] = useState<TimeBlock>("morning");
   const [newItemTitle, setNewItemTitle] = useState("");
@@ -87,9 +87,9 @@ export function RoutineTable() {
                             "routine-item p-2 rounded-md border",
                             item.completed ? "bg-green-50 border-green-200" : "bg-white border-slate-200",
                             item.color && `border-l-4 border-l-[${item.color}]`,
-                            isAdmin && "cursor-pointer"
+                            user && "cursor-pointer"
                           )}
-                          onClick={() => isAdmin && setSelectedItem(item)}
+                          onClick={() => user && setSelectedItem(item)}
                           style={item.color ? { borderLeftColor: item.color } : {}}
                         >
                           <div className="flex justify-between items-start">
@@ -102,7 +102,7 @@ export function RoutineTable() {
                                 </div>
                               )}
                             </div>
-                            {isAdmin && (
+                            {user && (
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -132,7 +132,7 @@ export function RoutineTable() {
                         </div>
                       ))}
                       
-                      {isAdmin && (
+                      {user && (
                         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                           <DialogTrigger asChild>
                             <Button 
@@ -170,7 +170,7 @@ export function RoutineTable() {
                       )}
                     </div>
                   ) : (
-                    isAdmin ? (
+                    user ? (
                       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
                           <div 

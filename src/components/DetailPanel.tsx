@@ -9,9 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function DetailPanel() {
   const { selectedItem, setSelectedItem, deleteRoutineItem } = useRoutine();
-  const { isAdmin } = useAuth();
+  const { user } = useAuth();
   
-  if (!selectedItem || !isAdmin) return null;
+  if (!selectedItem || !user) return null;
 
   const handleClose = () => {
     setSelectedItem(null);
