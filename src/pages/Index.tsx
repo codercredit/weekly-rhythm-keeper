@@ -7,7 +7,7 @@ import { BlogPost } from "@/components/BlogPost";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ChevronRight, TrendingUp, Calendar, Target } from "lucide-react";
+import { ChevronRight, TrendingUp, Calendar, Target, BookOpen, Lightbulb, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlog } from "@/contexts/BlogContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,8 +23,8 @@ const Index = () => {
     fetchPosts();
   }, []);
 
-  // Get the most recent blog post as featured post
-  const featuredPost = posts.length > 0 ? posts[0] : null;
+  // Get the first 3 blog posts for featured content
+  const featuredPosts = posts.slice(0, 3);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -98,52 +98,8 @@ const Index = () => {
             </AlertDescription>
           </Alert>
         )}
-        
-        {/* Featured Content Section */}
-        <Card className="bg-gradient-to-r from-background to-muted/20">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-2xl">Featured Content</CardTitle>
-                <CardDescription>Stay updated with the latest insights and tips</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/blog">
-                  View All Posts
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {blogLoading ? (
-              <div className="h-48 bg-gradient-to-r from-muted to-muted/50 animate-pulse rounded-lg"></div>
-            ) : featuredPost ? (
-              <BlogPost
-                id={featuredPost.id}
-                title={featuredPost.title}
-                description={featuredPost.description}
-                date={featuredPost.date}
-                readTime={featuredPost.readTime}
-                featured={true}
-                image={featuredPost.image}
-              />
-            ) : (
-              <div className="border border-dashed border-muted-foreground/25 rounded-lg p-12 text-center bg-gradient-to-br from-muted/20 to-muted/10">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium text-muted-foreground mb-2">No blog posts available yet</p>
-                <p className="text-sm text-muted-foreground mb-4">Start creating valuable content for your audience</p>
-                {user && (
-                  <Button variant="outline" asChild>
-                    <Link to="/blog-management">Create First Post</Link>
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Routine Management Section */}
+        {/* Routine Management Section - Main Focus */}
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Routine Management</CardTitle>
@@ -157,6 +113,80 @@ const Index = () => {
           <CardContent className="space-y-6">
             <RoutineManager />
             <RoutineTable />
+          </CardContent>
+        </Card>
+
+        {/* Featured Content Section - 3 Items */}
+        <Card className="bg-gradient-to-r from-background to-muted/20">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-2xl">Featured Content</CardTitle>
+                <CardDescription>Stay updated with the latest insights and productivity tips</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/blog">
+                  View All Posts
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {blogLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-48 bg-gradient-to-r from-muted to-muted/50 animate-pulse rounded-lg"></div>
+                ))}
+              </div>
+            ) : featuredPosts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredPosts.map((post) => (
+                  <BlogPost
+                    key={post.id}
+                    id={post.id}
+                    title={post.title}
+                    description={post.description}
+                    date={post.date}
+                    readTime={post.readTime}
+                    image={post.image}
+                    className="h-full"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Placeholder content when no blog posts are available */}
+                <Card className="border border-dashed border-muted-foreground/25 bg-gradient-to-br from-muted/20 to-muted/10">
+                  <CardContent className="p-6 text-center">
+                    <Lightbulb className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                    <h3 className="font-medium text-muted-foreground mb-2">Productivity Tips</h3>
+                    <p className="text-sm text-muted-foreground">Learn how to maximize your daily routine effectiveness</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border border-dashed border-muted-foreground/25 bg-gradient-to-br from-muted/20 to-muted/10">
+                  <CardContent className="p-6 text-center">
+                    <Users className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                    <h3 className="font-medium text-muted-foreground mb-2">Community Stories</h3>
+                    <p className="text-sm text-muted-foreground">Discover how others build successful habits</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border border-dashed border-muted-foreground/25 bg-gradient-to-br from-muted/20 to-muted/10">
+                  <CardContent className="p-6 text-center">
+                    <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                    <h3 className="font-medium text-muted-foreground mb-2">Getting Started</h3>
+                    <p className="text-sm text-muted-foreground">Step-by-step guide to building better routines</p>
+                    {user && (
+                      <Button variant="outline" size="sm" className="mt-3" asChild>
+                        <Link to="/blog-management">Create Content</Link>
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </CardContent>
         </Card>
 
